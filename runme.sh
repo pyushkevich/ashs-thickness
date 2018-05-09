@@ -2,10 +2,57 @@
 #$ -S /bin/bash
 set -x -e
 
+# ----------
+# ASHS Thickness Script
+# ----------
+#
+# This is a thickness pipeline script for ASHS. It was used in preparation of the data
+# for the 2014 Yushkevich et al. Human Brain Mapping paper 
+# https://onlinelibrary.wiley.com/doi/full/10.1002/hbm.22627
+#
+# This script is in rough shape. It works in our environment and it has been documented
+# to help you run it in yours. But some modifications to the script may be necessary
+# espeically if you use the script with a different ASHS atlas. This script is based on
+# the ASHS PMC atlas used in the paper above.
+
+# All comments that start with (!) are places that you may need to customize the script
+
+# (!) Required input files for thickness analysis
+# 
+# analysis_input/subj.txt: a list of subject IDS separated by spaces, all on a single line
+# 
+# analysis_input/design_XXX.txt: design matrix for experiment XXX. You may have more than one
+# experiment. Each row has the format
+#   ID COVARIATE COVARIATE ... COVARIATE
+# where ID is the subject id from subj.txt and covariates are things like Age, ICV, and group
+# membership. For example, if you are doing a comparison between patients and controls and 
+# covary for age and ICV your design might look like
+#   Subj01 1 0 77 1002320
+#   Subj02 0 1 75 991234
+# here Subj01 is a patient and Subj02 is a control. For more info see documentation of meshglm
+#
+# analysis_input/contrast_XXX_YYY.txt: contrast vector for experiment XXX, contrast YYY. Each 
+# experiment may have more than one contrast, although typically you would have one. For example
+# you could for the same design matrix be interested in the contrast between patients and controls
+# and regression with age. The contrast is a one-line file containing the contrast vector. For the
+# age contrast, you would enter (for the design matrix above)
+#   
+#   0 0 1 0 
+#
+# and for the patient vs control contrast, you would enter
+# 
+#   1 -1 0 0 
+#
+# For more info about design matrices and contrasts, see docs for meshglm or SPM documentation.
+#
+# Note that XXX and YYY above can be arbitrary strings (without an underline)
+#
+# You also need to have processed a set of subjects using ASHS and to have Grid Engine (qsub)
+# on your Linux machine. 
+
 # (!) Location of ASHS. This must be the OLD (aka slow) ASHS that was in the 'master'
 # branch of ASHS git as of 5/2018, not the new (aka fast) ASHS branch.
-ASHS_ROOT=~pauly/wolk/ashs
-PATH=$ASHS_ROOT/ext/Linux/bin/ants_1042:$ASHS_ROOT/ext/Linux/bin:$PATH
+ASHS_ROOT=~/ashs
 
 # (!) These are the ids of the labels for which thickness computation will be done.
 # The labels combine some of the smaller labels, e.g., CA combines CA1, CA2 and CA3
@@ -21,16 +68,16 @@ LABEL_FG=(CA DG SUB ERC BA35 BA36)
 # there is a directory with that subject's ID that contains ASHS output. For each subject
 # id, there should be a directory ${ASHSRUNDIR}/${id} containing the usual ASHS subdirs
 # final, bootstrap, etc.
-ASHSRUNDIR=~pauly/wolk/shavg/parkinsons/ashs
+ASHSRUNDIR=~/shavg/parkinsons/ashs
 
 # (!) This is the directory of ASHS segmentaion 'fix-up'. In our paper we cleaned up ASHS 
 # segmentations by clearing slices that had very few segmented voxels. The fixup directory
 # is expected to contain files with signature ${id}_seg_${side}.nii.gz where ${id} is the 
 # subject id and ${side} is left or right
-FIXUPDIR=~/wolk/exp04_headtail/fullset_truexval/cleanup
+FIXUPDIR=~/exp04_headtail/fullset_truexval/cleanup
 
-# This is not something you need to set as a user
 KINDS="tse mprage ${LABEL_IDS[*]}"
+PATH=$ASHS_ROOT/ext/Linux/bin/ants_1042:$ASHS_ROOT/ext/Linux/bin:$PATH
 
 mkdir -p dump
 
