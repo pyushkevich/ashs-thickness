@@ -49,6 +49,8 @@ set -x -e
 #
 # You also need to have processed a set of subjects using ASHS and to have Grid Engine (qsub)
 # on your Linux machine. 
+# 
+# You should run the script from the directory where the script is located. 
 
 # (!) Location of ASHS. This must be the OLD (aka slow) ASHS that was in the 'master'
 # branch of ASHS git as of 5/2018, not the new (aka fast) ASHS branch.
@@ -77,7 +79,7 @@ ASHSRUNDIR=~/shavg/parkinsons/ashs
 FIXUPDIR=~/exp04_headtail/fullset_truexval/cleanup
 
 KINDS="tse mprage ${LABEL_IDS[*]}"
-PATH=$ASHS_ROOT/ext/Linux/bin/ants_1042:$ASHS_ROOT/ext/Linux/bin:$PATH
+PATH=$ASHS_ROOT/ext/Linux/bin/ants_1042:$ASHS_ROOT/ext/Linux/bin:./ext/Linux/bin:$PATH
 
 mkdir -p dump
 
